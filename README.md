@@ -14,7 +14,7 @@ For full instructions, see [the download page](http://etetoolkit.org/download/)
 
 We use Gurobi's python api as our ILP solver. In the future, we hope to add support for FOSS ILP solvers as well. However, Gurobi is free to use for academic purposes. See [this page](https://www.gurobi.com/academia/academic-program-and-licenses/) for full instructions. Briefly, the setup requires 3 steps:
 
-1. Download Gurobi from the [downloads](https://www.gurobi.com/downloads/) page
+1. Download Gurobi Optimizer from the [downloads](https://www.gurobi.com/downloads/) page
 2. Get a Gurobi academic license [here](https://www.gurobi.com/downloads/end-user-license-agreement-academic/)
 3. Install your license using `grbgetkey <YOUR_KEY_HERE>`
 
