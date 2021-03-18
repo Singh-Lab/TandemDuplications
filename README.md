@@ -27,7 +27,7 @@ You can test the code using our test script on the simulated examples in the dat
 
 To run the tests, run 
 
-`python test.py --type <exact/heuristic> --edist <0.1/0.075/0.05/0.025/0.01>`
+`python test.py -type <exact/heuristic> -edist <0.1/0.075/0.05/0.025/0.01>`
 
 When running with the exact solver, note that event distances less than 0.05 may take a very long time to run.
 
