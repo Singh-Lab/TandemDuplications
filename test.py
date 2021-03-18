@@ -4,9 +4,9 @@ from gurobipy import *
 from tqdm import tqdm
 from time import time
 import numpy as np
-from TreeUtils import convert_trees, parse_multrec, run_multrec, map_isometric_nodes, rec_cost
-from TreeSearch import reconcileDL
+from TreeUtils import rec_cost, reconcileDL
 from heuristic import pipeline, identified_tds, isolate_subtree, add_event_info
+import argparse
 
 def read_dupfile(dupfile):
     dups = []
@@ -186,9 +186,9 @@ def test_ilp(edist):
         totalTime += runtime
         ilp_cost.append(rec_cost(guest, str_to_map(infer_map, host, guest), id_tds))
 
-    print "Average Time Per Example:", totalTime / 50.0
-    print "Mapping Accuracy:", np.mean(map_acc)
-    print "Tandem Duplication Accuracy", np.mean(acc)
+    print ("Average Time Per Example:", totalTime / 50.0)
+    print ("Mapping Accuracy:", np.mean(map_acc))
+    print ("Tandem Duplication Accuracy", np.mean(acc))
 
 def test_heuristic(edist):
     outputs = []
@@ -225,11 +225,30 @@ def test_heuristic(edist):
         b = real_td_list(path + 'dupfile.txt')
         jaccards.append(recall(a,b))
 
-    print 'Mapping Correctness:\n'
+    print ('Mapping Correctness:\n')
     for output in outputs:
-        print output 
+        print (output )
 
-    print 'Time per iteration:', (time() - start) / 50
+    print ('Time per iteration:', (time() - start) / 50)
 
 if __name__ == '__main__':
-    test_ilp(0.1)
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument('-type', 
+                        type=str, 
+                        help='The type of solver (exact/heuristic) to use', 
+                        default='heuristic',
+                        choices=['heuristic', 'exact'])
+
+    parser.add_argument('-edist', 
+                        type=str, 
+                        help='The simulated event distance to test on (0.1/0.075/0.05/0.025/0.01)', 
+                        default='0.1',
+                        choices=['0.1','0.075','0.05','0.025','0.01'])
+
+    args = parser.parse_args()
+
+    if args.type == 'exact':
+        test_ilp(args.edist)
+    else:
+        test_heuristic(args.edist)

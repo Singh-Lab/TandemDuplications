@@ -277,7 +277,7 @@ def reconcileDL(host, guest, leafmap):
         try:
             a, b = guestParent.children
         except:
-            print guest.get_ascii()
+            print (guest.get_ascii())
             raise Exception
         if a in seen and b in seen:
             jobs.append(guestParent)

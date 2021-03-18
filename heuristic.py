@@ -1,8 +1,7 @@
 from ete3 import Tree
-from TreeUtils import run_multrec, parse_multrec, convert_trees, map_isometric_nodes
 from ilp_generator import createDistMatrix, createTreeRepresentation, createEMatrix, \
                           createEqnsSingle, write
-from TreeSearch import reconcileDL
+from TreeUtils import reconcileDL
 import argparse
 from gurobipy import *
 import numpy as np
@@ -26,11 +25,11 @@ def checkAbove(host, guest, realmap, infermap):
         real, infer = realmap[node], infermap[node]
         if host.get_common_ancestor(real, infer) == real and real != infer:
             above += 1
-            print host.get_ascii()
-            print real.name, infer.name
-            print [realmap[i].name for i in node.children]
+            print (host.get_ascii())
+            print (real.name, infer.name)
+            print ([realmap[i].name for i in node.children])
 
-    print "Number of nodes above (should be 0):", above
+    print ("Number of nodes above (should be 0):", above)
 
 #Util
 def read_mapping(host, guest, mapfile):
@@ -175,14 +174,14 @@ def run_ilp_single(subtree, ematrix):
             assert valid_pairs == new_pairs
 
         except:
-            print 'valid pairs', valid_pairs
-            print 'new pairs', new_pairs
-            print subtree.get_ascii()
+            print('valid pairs'), valid_pairs
+            print('new pairs'), new_pairs
+            print (subtree.get_ascii())
             print
-            print subtree.get_ascii(attributes=['label'])
+            print (subtree.get_ascii(attributes=['label']))
             print
-            print 'Should be 1:', [a for a in valid_pairs if a not in new_pairs]
-            print 'Should not be 1:', [a for a in new_pairs if a not in valid_pairs]
+            print ('Should be 1:', [a for a in valid_pairs if a not in new_pairs])
+            print ('Should not be 1:', [a for a in new_pairs if a not in valid_pairs])
             sys.exit(1)
 
     eqnames, rhs, coldict = createEqnsSingle(subtree, new_ematrix, g)
@@ -209,26 +208,6 @@ def add_event_info(host, guest, mapping):
 
 #Given a set of tds from the same host node, order them top to bottom 
 def order_tds(tds):
-
-    """
-    def pairwise_td_order(td1, td2):
-        #Returns 0,1,2 for td1 > td2, td2 > td1, incomparable
-        thing = set(td2)
-        for node in td1:
-            x = node
-            while x.up != None:
-                if x.up in thing:
-                    return 0
-
-        thing = set(td1)
-        for node in td2:
-            x = node
-            while x.up != None:
-                if x.up in thing:
-                    return 1
-
-        return 2
-    """
 
     def no_deps(td, unused):
         for node in td:
@@ -316,8 +295,6 @@ def push_down(host, guest, mapping, td_dict):
             lca = host.get_common_ancestor(*lcas) if len(lcas) > 1 else lcas[0]
 
             for gnode in td:
-                if mapping[gnode] != host&"h0" and lca == host&"h0":
-                    print 'fuck', gnode.name
                 mapping[gnode] = lca
 
     return mapping
@@ -354,26 +331,6 @@ def push_up(host, guest, mapping, td_dict, ematrix):
                     #add to new td
                     parent_tds[i] += td
 
-def map_with_multrec(host, guest):
-    s, g = convert_trees(host, guest)
-    cost, gtree = run_multrec(s, g)
-
-    host = Tree(host, format=1)
-    guest = Tree(guest, format=1)
-    #print 'guest immediate features', guest.features
-
-    gtree, m_to_host = parse_multrec(gtree, host)
-    m_to_g = map_isometric_nodes(guest, gtree, gen_map(guest, gtree))
-
-    inferred_map = {}
-
-    for key in m_to_host:
-        gnode = m_to_g[key]
-        hnode = m_to_host[key]
-        inferred_map[gnode] = hnode
-
-    return host, guest, inferred_map
-
 def map_with_lca(host, guest):
     host = Tree(host, format=1)
     guest = Tree(guest, format=1)
@@ -392,7 +349,6 @@ def map_with_lca(host, guest):
 def pipeline(host, guest):
     #Step 1: Run/Parse Multrec
 
-    #host, guest, inferred_map = map_with_multrec(host, guest)
     host, guest, inferred_map = map_with_lca(host, guest)
 
     #Add in dup/spec information for the ILP
@@ -442,74 +398,3 @@ def pipeline(host, guest):
     return host, guest, inferred_map, mapping, intermediate_tds, final_tds
     
     #return host, guest, inferred_map, intermediate_tds
-
-if __name__ == '__main__':
-    #Step 0: Input Arguments
-    parser = argparse.ArgumentParser()
-
-    parser.add_argument('host', type=str, help='The input host tree in newick format')
-    parser.add_argument('guest', type=str, help='The input guest tree in newick format')
-    parser.add_argument('mapping', type=str, help='Path to txt file containing host->guest leaf mapping')
-
-    args = parser.parse_args()
-
-    host = Tree(args.host, format=1)
-    guest = Tree(args.guest, format=1)
-    g_to_host = read_mapping(host, guest, args.mapping) #Ground Truth Mapping DO NOT USE IN INFERENCE
-    dupfile = read_dupfile(args.host[:-8] + 'dupfile.txt')
-
-    #Step 1: Run/Parse Multrec
-    s, g = convert_trees(args.host, args.guest)
-    cost, gtree = run_multrec(s, g)
-
-    gtree, m_to_host = parse_multrec(gtree, host)
-    m_to_g = map_isometric_nodes(guest, gtree, gen_map(guest, gtree))
-
-    inferred_map = {}
-
-    for key in m_to_host:
-        gnode = m_to_g[key]
-        hnode = m_to_host[key]
-        inferred_map[gnode] = hnode
-
-    if DEBUG:
-        checkAbove(host, guest, g_to_host, inferred_map)
-
-    #Add in dup/spec information for the ILP
-    add_event_info(host, guest, inferred_map)
-
-    #Step 2: Run Per Node ILP
-    if DEBUG and False:
-        print "\nFIRST RUN\n"
-    grep = createTreeRepresentation(guest)
-    ematrix = createEMatrix(guest)
-    td_dict = {}
-    for hnode in host.traverse():
-        subtree = isolate_subtree(guest, hnode, inferred_map)
-        m, iso_tds = run_ilp_single(subtree, ematrix)
-        tds = build_dupsets(subtree, guest, iso_tds)
-        td_dict[hnode] = tds
-
-    if DEBUG and False:
-        for key in td_dict:
-            print key.name, [[j.name for j in i] for i in td_dict[key]]
-
-    #Step 3: Move Things to LCA
-    mapping = push_down(host, guest, {key : inferred_map[key] for key in inferred_map}, {key : td_dict[key] for key in td_dict})
-
-    #Step 4: Reinfer tandem duplications with new mapping
-    #TODO: After testing step 2, copy paste here
-    if DEBUG and False:
-        print "\nSECOND RUN\n"
-    grep = createTreeRepresentation(guest)
-    ematrix = createEMatrix(guest)
-    td_dict = {}
-    for hnode in host.traverse():
-        subtree = isolate_subtree(guest, hnode, mapping)
-        m, iso_tds = run_ilp_single(subtree, ematrix)
-        tds = build_dupsets(subtree, guest, iso_tds)
-        td_dict[hnode] = tds
-
-    if DEBUG and False:
-        for key in td_dict:
-            print key.name, [[j.name for j in i] for i in td_dict[key]]
