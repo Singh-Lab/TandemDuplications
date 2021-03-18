@@ -24,7 +24,7 @@ def accuracy(real_tds, id_tds):
 def map_accuracy(real_map, infer_map):
 	total = len(real_map)
 	correct = 0.0
-	if type(infer_map.keys()[0]) == str:
+	if type(list(infer_map.keys())[0]) == str:
 		for key in real_map:
 			if real_map[key].name == infer_map[key.name]:
 				correct += 1
