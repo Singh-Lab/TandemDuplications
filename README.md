@@ -36,8 +36,8 @@ When running with the exact solver, note that event distances less than 0.05 may
 
 To infer tandem duplications and single losses in a domain tree, our tool requires as input a gene tree, a domain tree, a mapping from domains to genes and the relative positions of domains within each gene. We require domain and gene tree files as input, and infer position and mapping from the names of the leaf nodes in the gene and domain trees. Note that the tool can instead be used to infer events at the gene level by using a species tree and domain tree respectively. The input formats are as follows:
 
-* **Gene Tree**: The input gene tree in newick format. Only names for the leaf genes are required. Leaf names must be of the form h<int>, where <int> is a unique integer identifier for each gene.<br>  Example: `'((h1,h2),h3);'`
-* **Domain Tree**: The input domain tree in newick format. Only names for the leaf domains are required Leaf names must be of the form g<int>_<pos>, where <int> is the integer identifier corresponding to the gene in which the domain exists, and <pos> is the relative, 0-indexed position of the domain with respect to the other domains on the sequence.<br>  Example: `'((g1_0,g2_0),(g3_0,g3_1));'` 
+* **Gene Tree**: The input gene tree in newick format. Names are required for all nodes in the tree. Leaf names must be of the form h<int>, where <int> is a unique integer identifier for each gene. Internal node names must be unique but may otherwise be in any form.<br>  Example: `'((h1,h2)A,h3)B;'`
+* **Domain Tree**: The input domain tree in newick format. Names are required for all nodes in the tree. Leaf names must be of the form g<int>_<pos>, where <int> is the integer identifier corresponding to the gene in which the domain exists, and <pos> is the relative, 0-indexed position of the domain with respect to the other domains on the sequence. Internal node names must be unique but may otherwise be in any form.<br>  Example: `'((g1_0,g2_0)a,(g3_0,g3_1)b)c;'` 
 
 With the example inputs, the tool would infer three extant sequences with the following domain layouts:
 
@@ -55,4 +55,12 @@ To run the tool on your own inputs, use the `run.py` script. It takes two positi
 * `dtree`: The input domain tree in the correct format
 * `type`: The type of solver to use. Choose between an `exact` ILP solution to the TDL Reconciliation Problem, or a fast `heuristic`. (Optional, default: heuristic)
 
-The tool outputs two files
+The tool outputs two files:
+
+`tandem_duplications.out` includes all tandem duplications found in the example. Each line contains a list of all domains participating in a single tandem duplication. Single duplications are represented as lines with only one domain.
+
+Example:<br> [a,b] <br> [c,d,e] <br> [f]
+
+`mapfile.out` contains a full mapping of nodes in the domain tree to nodes in the gene tree. Each line contains the mapping of a single domain, in the form
+
+`<domain_name>    <gene_name>`
