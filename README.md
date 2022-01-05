@@ -1,6 +1,6 @@
 # Tandem Duplications
 
-This tool finds tandem duplications of domains using the method described in INSERT_REFERENCE_HERE. We take as input a gene tree and a species tree, as well as the relative ordering of domains on extant sequences and output a list of tandem duplications. Below are instructions on how to install dependencies, test the code, and run your own examples.
+This tool finds tandem duplications of domains using the method described here: https://academic.oup.com/bioinformatics/article/37/Supplement_1/i133/6319657?login=true. We take as input a gene tree and a species tree, as well as the relative ordering of domains on extant sequences and output a list of tandem duplications. Below are instructions on how to install dependencies, test the code, and run your own examples.
 
 ## Setup
 
